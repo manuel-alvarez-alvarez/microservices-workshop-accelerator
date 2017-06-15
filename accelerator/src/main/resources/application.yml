@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: accelerator
+  cloud:
+    stream:
+      bindings:
+        accelerator_output:
+          binder: kafka
+          destination: accelerator
+      kafka:
+        binder:
+          headers:
+            - AGGREGATE
+            - EVENT_TYPE
+          brokers: kafka
+          defaultBrokerPort: 9092
+          zkNodes: zookeeper
+          defaultZkPort: 2181
+accelerator:
+  collisionInterval: 1000

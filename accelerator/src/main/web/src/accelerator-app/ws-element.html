@@ -1,0 +1,51 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="libraries.html">
+
+<dom-module id="ws-element">
+
+    <script>
+        /**
+         * @customElement
+         * @polymer
+         */
+        class WsElement extends Polymer.Element {
+            static get is() {
+                return 'ws-element';
+            }
+
+            static get properties() {
+                return {
+                    endpoint: {
+                        type: String
+                    },
+                    topic: {
+                        type: String
+                    }
+                };
+            }
+
+            connectedCallback() {
+                this.socket = new SockJS(this.endpoint);
+                this.stompClient = Stomp.over(this.socket);
+                this.stompClient.debug = function (message) {
+                    // do nothing
+                };
+                this.stompClient.connect({}, this._connectionSuccess.bind(this), this._onConnectionError.bind(this));
+            }
+
+            _connectionSuccess() {
+                this.stompClient.subscribe(this.topic, this._onMessage.bind(this));
+            }
+
+            _onConnectionError() {
+
+            }
+
+            _onMessage(frame) {
+                this.dispatchEvent(new CustomEvent('message', {detail: JSON.parse(frame.body)}));
+            }
+        }
+
+        window.customElements.define(WsElement.is, WsElement);
+    </script>
+</dom-module>

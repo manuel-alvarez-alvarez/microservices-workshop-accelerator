@@ -1,0 +1,383 @@
+import org.gradle.internal.os.OperatingSystem;
+
+buildscript {
+    ext {
+        springBootVersion = '1.5.2.RELEASE'
+        gradleDockerVersion = '1.2'
+        gradleWrapperVersion = '3.5'
+        pushDockerImages = false
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("se.transmode.gradle:gradle-docker:$gradleDockerVersion")
+        classpath("com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3")
+    }
+}
+
+configure(allprojects) {
+
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    group = 'es.malvarez.microservices.workshop'
+    version = '0.0.1-SNAPSHOT'
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile('org.springframework.cloud:spring-cloud-stream')
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:Dalston.RELEASE"
+            mavenBom 'org.springframework.cloud:spring-cloud-stream-dependencies:Chelsea.SR1'
+        }
+    }
+}
+
+configure(project(":api")) {
+
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
+
+    bintray {
+        user = bintrayUser
+        key = bintrayKey
+        pkg {
+            repo = 'microservices-workshop-maven'
+            name = 'api'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/manuel-alvarez-alvarez/microservices-workshop-common.git'
+            publications = ['mavenJava']
+        }
+    }
+
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+    }
+}
+
+configure(project(":accelerator")) {
+
+    apply plugin: 'docker'
+    apply plugin: 'org.springframework.boot'
+
+    springBoot {
+        mainClass = "es.malvarez.microservices.accelerator.AcceleratorApplication"
+    }
+
+    dependencies {
+        compile('org.springframework.boot:spring-boot-starter-websocket')
+        compile('org.springframework.cloud:spring-cloud-starter-stream-kafka')
+        compile project(':api')
+    }
+
+    docker {
+        apiUsername dockerUser
+        apiPassword dockerPassword
+    }
+
+    task bower(type: Exec) {
+        workingDir "${projectDir}/src/main/web"
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', 'bower install'
+        } else {
+            commandLine 'bower', 'install'
+        }
+    }
+    bower.group = 'build'
+
+    task buildPolymer(type: Exec) {
+        workingDir "${projectDir}/src/main/web"
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', 'polymer build'
+        } else {
+            commandLine 'polymer', 'build'
+        }
+    }
+    buildPolymer.dependsOn bower
+    buildPolymer.group = 'build'
+
+    task copyPolymer(type: Copy) {
+        doFirst {
+            delete "${projectDir}/build/resources/main/static/"
+        }
+        from "${projectDir}/src/main/web/build/default/"
+        into "${projectDir}/build/resources/main/static/"
+    }
+    buildPolymer.group = 'build'
+    buildPolymer.finalizedBy copyPolymer
+    processResources.finalizedBy buildPolymer
+
+    task devPolymer(type: Copy) {
+        from "${projectDir}/src/main/web"
+        into "${projectDir}/build/resources/main/static"
+    }
+    devPolymer.group = 'other'
+
+    task loginDocker(type: Exec) {
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', "docker login -u ${dockerUser} -p ${dockerPassword}"
+        } else {
+            commandLine 'docker', 'login', '-u', dockerUser, '-p', dockerPassword
+        }
+    }
+
+    task buildDocker(type: Docker) {
+        tag = "manvel7650/microservices-workshop-accelerator"
+        tagVersion = 'latest'
+        dockerfile = file("${projectDir}/src/main/docker/Dockerfile")
+        push = pushDockerImages
+        doFirst {
+            copy {
+                from jar
+                into stageDir
+                rename(jar.archivePath.name, 'app.jar')
+            }
+        }
+    }
+    buildDocker.group = 'build'
+    buildDocker.dependsOn loginDocker
+    build.finalizedBy buildDocker
+}
+
+configure(project(":registry")) {
+
+    apply plugin: 'docker'
+    apply plugin: 'org.springframework.boot'
+
+    springBoot {
+        mainClass = "es.malvarez.microservices.registry.RegistryApplication"
+    }
+
+    dependencies {
+        compile('org.springframework.cloud:spring-cloud-starter-eureka-server')
+    }
+
+    docker {
+        apiUsername dockerUser
+        apiPassword dockerPassword
+    }
+
+    task loginDocker(type: Exec) {
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', "docker login -u ${dockerUser} -p ${dockerPassword}"
+        } else {
+            commandLine 'docker', 'login', '-u', dockerUser, '-p', dockerPassword
+        }
+    }
+
+    task buildDocker(type: Docker) {
+        tag = "manvel7650/microservices-workshop-registry"
+        tagVersion = 'latest'
+        dockerfile = file("${projectDir}/src/main/docker/Dockerfile")
+        push = pushDockerImages
+        doFirst {
+            copy {
+                from jar
+                into stageDir
+                rename(jar.archivePath.name, 'app.jar')
+            }
+        }
+    }
+    buildDocker.group = 'build'
+    buildDocker.dependsOn loginDocker
+    build.finalizedBy buildDocker
+}
+
+configure(project(":gateway")) {
+
+    apply plugin: 'docker'
+    apply plugin: 'org.springframework.boot'
+
+    springBoot {
+        mainClass = "es.malvarez.microservices.gateway.GatewayApplication"
+    }
+
+    dependencies {
+        compile('org.springframework.cloud:spring-cloud-starter-eureka')
+        compile('org.springframework.cloud:spring-cloud-starter-zuul')
+    }
+
+    docker {
+        apiUsername dockerUser
+        apiPassword dockerPassword
+    }
+
+    task loginDocker(type: Exec) {
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', "docker login -u ${dockerUser} -p ${dockerPassword}"
+        } else {
+            commandLine 'docker', 'login', '-u', dockerUser, '-p', dockerPassword
+        }
+    }
+
+    task buildDocker(type: Docker) {
+        tag = "manvel7650/microservices-workshop-gateway"
+        tagVersion = 'latest'
+        dockerfile = file("${projectDir}/src/main/docker/Dockerfile")
+        push = pushDockerImages
+        doFirst {
+            copy {
+                from jar
+                into stageDir
+                rename(jar.archivePath.name, 'app.jar')
+            }
+        }
+    }
+    buildDocker.group = 'build'
+    buildDocker.dependsOn loginDocker
+    build.finalizedBy buildDocker
+}
+
+configure(project(":web")) {
+
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
+
+    bintray {
+        user = bintrayUser
+        key = bintrayKey
+        pkg {
+            repo = 'microservices-workshop-maven'
+            name = 'web'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/manuel-alvarez-alvarez/microservices-workshop-common.git'
+            publications = ['mavenJava']
+        }
+    }
+
+    springBoot {
+        mainClass = "es.malvarez.microservices.web.DetectorApplication"
+    }
+
+    dependencies {
+        compile('org.springframework.boot:spring-boot-starter-websocket')
+        compile('org.springframework.boot:spring-boot-starter-data-jpa')
+        compile('com.h2database:h2')
+        compile('org.liquibase:liquibase-core')
+        compile project(':api')
+    }
+
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+    }
+
+    task bower(type: Exec) {
+        workingDir "${projectDir}/src/main/web"
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', 'bower install'
+        } else {
+            commandLine 'bower', 'install'
+        }
+    }
+    bower.group = 'build'
+
+    task buildPolymer(type: Exec) {
+        workingDir "${projectDir}/src/main/web"
+        if (OperatingSystem.current().isWindows()) {
+            commandLine 'cmd', '/c', 'polymer build'
+        } else {
+            commandLine 'polymer', 'build'
+        }
+    }
+    buildPolymer.dependsOn bower
+    buildPolymer.group = 'build'
+
+    task copyPolymer(type: Copy) {
+        doFirst {
+            delete "${projectDir}/build/resources/main/static/"
+        }
+        from "${projectDir}/src/main/web/build/default/"
+        into "${projectDir}/build/resources/main/static/"
+    }
+    buildPolymer.group = 'build'
+    buildPolymer.finalizedBy copyPolymer
+    processResources.finalizedBy buildPolymer
+
+    task devPolymer(type: Copy) {
+        from "${projectDir}/src/main/web"
+        into "${projectDir}/build/resources/main/static"
+    }
+    devPolymer.group = 'other'
+}
+
+configure(project(":cqrs")) {
+
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'com.jfrog.bintray'
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
+
+    bintray {
+        user = bintrayUser
+        key = bintrayKey
+        pkg {
+            repo = 'microservices-workshop-maven'
+            name = 'cqrs'
+            licenses = ['Apache-2.0']
+            vcsUrl = 'https://github.com/manuel-alvarez-alvarez/microservices-workshop-common.git'
+            publications = ['mavenJava']
+        }
+    }
+
+    springBoot {
+        mainClass = "es.malvarez.microservices.cqrs.CqrsApplication"
+    }
+
+    dependencies {
+        compile project(':api')
+    }
+
+    task sourceJar(type: Jar) {
+        from sourceSets.main.allJava
+    }
+
+}
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = gradleWrapperVersion
+}

@@ -1,0 +1,683 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="ws-element.html">
+
+<dom-module id="accelerator-app">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            *,
+            *:after,
+            *:before {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
+            }
+
+            .accelerator-controls {
+                position: fixed;
+                top: 0;
+                right: 0;
+                text-align: center;
+                vertical-align: middle;
+                z-index: 1000;
+
+                background-color: #397fc5;
+                color: white;
+            }
+
+            .accelerator-snapshots {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 62px;
+                z-index: 1000;
+                background-color: #ffffff;
+            }
+
+            .accelerator-controls button {
+                border: none;
+            }
+
+            .switch {
+                margin: 20px;
+                position: relative;
+                display: inline-block;
+            }
+
+            .switch label {
+                width: 100%;
+                height: 100%;
+                position: relative;
+                display: block;
+            }
+
+            .switch input {
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+                filter: alpha(opacity=0);
+                -moz-opacity: 0;
+                opacity: 0;
+                z-index: 100;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+            }
+
+            .switch.power {
+                width: 50px;
+                height: 50px;
+            }
+
+            .switch.power label {
+                border-radius: 50%;
+                background: #b2ac9e;
+                background: -moz-linear-gradient(#f7f2f6, #b2ac9e);
+                background: -ms-linear-gradient(#f7f2f6, #b2ac9e);
+                background: -o-linear-gradient(#f7f2f6, #b2ac9e);
+                background: -webkit-gradient(linear, 0 0, 0 100%, from(#f7f2f6), to(#b2ac9e));
+                background: -webkit-linear-gradient(#f7f2f6, #b2ac9e);
+                background: linear-gradient(#f7f2f6, #b2ac9e);
+                position: relative;
+                color: #a5a39d;
+                font-size: 15px;
+                text-align: center;
+                line-height: 50px;
+
+                -webkit-transition: all 0.3s ease-out;
+                -moz-transition: all 0.3s ease-out;
+                -ms-transition: all 0.3s ease-out;
+                -o-transition: all 0.3s ease-out;
+                transition: all 0.3s ease-out;
+
+                text-shadow: 0 2px 1px rgba(0, 0, 0, 0.25);
+
+                box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.13),
+                0 5px 8px rgba(0, 0, 0, 0.3),
+                0 10px 10px 4px rgba(0, 0, 0, 0.3);
+                z-index: -1;
+            }
+
+            .switch.power label:after {
+                content: "";
+                position: absolute;
+                left: -10px;
+                right: -10px;
+                top: -10px;
+                bottom: -10px;
+                z-index: -2;
+                border-radius: inherit;
+                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.3),
+                0 0 10px rgba(0, 0, 0, 0.15);
+
+            }
+
+            .switch.power label:before {
+                content: "";
+                position: absolute;
+                left: -5px;
+                right: -5px;
+                top: -5px;
+                bottom: -5px;
+                z-index: -1;
+                border-radius: inherit;
+                box-shadow: inset 0 5px 5px rgba(0, 0, 0, 0.13);
+                -webkit-filter: blur(1px);
+                -moz-filter: blur(1px);
+                -ms-filter: blur(1px);
+                -o-filter: blur(1px);
+                filter: blur(1px);
+            }
+
+            .switch.power input:checked ~ label {
+                box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.13),
+                0 5px 8px rgba(0, 0, 0, 0.35),
+                0 3px 10px 4px rgba(0, 0, 0, 0.2);
+                color: #9abb82;
+            }
+
+            .switch.power .fa:after {
+                content: "";
+                display: block;
+                position: absolute;
+                width: 70%;
+                height: 70%;
+                left: 50%;
+                top: 50%;
+                z-index: -1;
+                margin: -35% 0 0 -35%;
+                border-radius: 50%;
+                background: #d2cbc3;
+                background: -moz-linear-gradient(#cbc7bc, #d2cbc3);
+                background: -ms-linear-gradient(#cbc7bc, #d2cbc3);
+                background: -o-linear-gradient(#cbc7bc, #d2cbc3);
+                background: -webkit-gradient(linear, 0 0, 0 100%, from(#cbc7bc), to(#d2cbc3));
+                background: -webkit-linear-gradient(#cbc7bc, #d2cbc3);
+                background: linear-gradient(#cbc7bc, #d2cbc3);
+                box-shadow: 0 -2px 5px rgba(255, 255, 255, 0.05),
+                0 2px 5px rgba(255, 255, 255, 0.1);
+            }
+
+            .experiment {
+                position: relative;
+                display: inline-block;
+                margin: 3px 5px;
+                border-radius: 5px;
+                border-width: 3px;
+                border-style: solid;
+                padding: 15px 0 0 90px;
+            }
+
+            .experiment:before {
+                position: absolute;
+                top: 0;
+                left: 0;
+                padding: 1px 3px 3px 1px;
+                border-radius: 0 0 5px 0;
+            }
+
+            .EINSTEIN {
+                border-color: #d77575;
+            }
+
+            .NEWTON {
+                border-color: #dcbc4c;
+            }
+
+            .HAWKING {
+                border-color: #a3ca3b;
+            }
+
+            .SCHRODINGER {
+                border-color: #3daee3;
+            }
+
+            .EINSTEIN:before {
+                content: 'Einstein';
+                background-color: #d77575;
+            }
+
+            .NEWTON:before {
+                content: 'Newton';
+                background-color: #dcbc4c;
+            }
+
+            .HAWKING:before {
+                content: 'Hawking';
+                background-color: #a3ca3b;
+            }
+
+            .SCHRODINGER:before {
+                content: 'Schrodinger';
+                background-color: #3daee3;
+            }
+        </style>
+
+        <script type="application/x-glsl" id="sky-vertex">
+varying vec2 vUV;
+varying float vDensity;
+varying float vDiff;
+
+void main() {
+  vUV = uv;
+  vec4 pos = vec4(position, 1.0);
+  gl_Position = projectionMatrix * modelViewMatrix * pos;
+}
+
+
+
+
+
+        </script>
+
+        <script type="application/x-glsl" id="sky-density">
+uniform sampler2D texture;
+varying vec2 vUV;
+
+void main() {
+  vec4 sample = texture2D(texture, vUV);
+  gl_FragColor = vec4(sample.xyz, sample.w);
+}
+
+
+
+
+
+
+        </script>
+
+        <iron-ajax
+                id="status"
+                url="/status"
+                method="GET"
+                handle-as="text"
+                on-response="_onStatusChange"></iron-ajax>
+
+        <iron-ajax
+                id="toggle"
+                url="/toggle"
+                method="PUT"></iron-ajax>
+
+        <ws-element
+                id="statusTopic"
+                endpoint="/ws"
+                topic="/topic/status"
+                on-message="_onStatusChange"></ws-element>
+
+        <ws-element
+                id="snapshotTopic"
+                endpoint="/ws"
+                topic="/topic/snapshot"
+                on-message="_onSnapshot"></ws-element>
+
+        <div class="accelerator-controls">
+            <div class="switch power">
+                <input type="checkbox" checked="{{powered}}" on-change="_toggle">
+                <label>Power</label>
+            </div>
+            <div class="switch power">
+                <input type="checkbox" checked="{{wireframe}}" on-change="_wireframe">
+                <label>Wire</label>
+            </div>
+        </div>
+
+        <div id="snapshots" class="accelerator-snapshots">
+            <div></div>
+        </div>
+    </template>
+
+    <script>
+
+        class VectorP {
+            constructor(t, r) {
+                this.t = t;
+                this.r = r;
+            }
+        }
+
+        class SnapshotParticle {
+            constructor(polar, velocity, vector, dom) {
+                this.velocity = velocity;
+                this.vector = vector;
+                this.vector.x = polar.r * Math.cos(polar.t);
+                this.vector.y = polar.r * Math.sin(polar.t);
+                this.dom = dom;
+            }
+
+            tick(delta) {
+                this.vector.x += this.velocity.x;
+                this.vector.y += this.velocity.y;
+                this.vector.z += this.velocity.z;
+            }
+        }
+
+        class Particle {
+            constructor(polar, velocity, vector) {
+                this.polar = polar;
+                this.velocity = velocity;
+                this.vector = vector;
+                this.updateVector();
+            }
+
+            tick(delta) {
+                this.polar.t += delta * this.velocity;
+                if (this.polar.t > Math.PI) {
+                    this.polar.t = -Math.PI;
+                } else if (this.polar.t < -Math.PI) {
+                    this.polar.t = Math.PI;
+                }
+                this.updateVector();
+            }
+
+            updateVector() {
+                this.vector.x = this.polar.r * Math.cos(this.polar.t);
+                this.vector.y = this.polar.r * Math.sin(this.polar.t);
+            }
+        }
+
+        /**
+         * @customElement
+         * @polymer
+         */
+        class AcceleratorApp extends Polymer.Element {
+            static get is() {
+                return 'accelerator-app';
+            }
+
+            static get properties() {
+                return {
+                    powered: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    wireframe: {
+                        type: Boolean,
+                        value: false,
+                        notify: true
+                    },
+                    particleCount: {
+                        type: Number,
+                        value: 200
+                    },
+                    ringRadius: {
+                        type: Number,
+                        value: 500
+                    },
+                    ringTube: {
+                        type: Number,
+                        value: 60
+                    },
+                    particleSize: {
+                        type: Number,
+                        value: 10
+                    }
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.$.status.generateRequest();
+
+                this.experimentData = {
+                    "EINSTEIN": { theta: 0, rotation: 0, color: 0xd77575 },
+                    "NEWTON": { theta: Math.PI / 2, rotation: Math.PI / 2, color: 0xdcbc4c },
+                    "HAWKING": { theta: Math.PI, rotation: 0, color: 0xa3ca3b },
+                    "SCHRODINGER": { theta: 3 * Math.PI / 2, rotation: Math.PI / 2, color: 0x3daee3 }
+                };
+
+                this.clock = new THREE.Clock();
+                this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000);
+                this.camera.position.z = 2 * this.ringRadius;
+                this.controls = new THREE.OrbitControls(this.camera);
+                this.controls.addEventListener("change", this._render.bind(this));
+                this.scene = new THREE.Scene();
+                this.textureLoader = new THREE.TextureLoader();
+                this.particleTexture = this.textureLoader.load("src/images/particle.png");
+
+                // accelerator
+                this.torus = new THREE.TorusGeometry(this.ringRadius, this.ringTube, 20, 100);
+                this.torusMaterial = new THREE.MeshLambertMaterial({ color: 0x397fc5 });
+                this.accelerator = new THREE.Mesh(this.torus, this.torusMaterial);
+                this.scene.add(this.accelerator);
+
+                // experiments
+                this.rings = [];
+                this.ringsMaterial = [];
+                this.experiments = [];
+                for (const experimentName in this.experimentData) {
+                    const data = this.experimentData[experimentName];
+                    const ring = new THREE.CylinderGeometry(this.ringTube + 20, this.ringTube + 20, 100, 20, 5);
+                    const material = new THREE.MeshLambertMaterial({ color: data.color });
+                    const experiment = new THREE.Mesh(ring, material);
+                    experiment.position.x = this.ringRadius * Math.cos(data.theta);
+                    experiment.position.y = this.ringRadius * Math.sin(data.theta);
+                    experiment.rotation.z = data.rotation;
+                    this.rings.push(ring);
+                    this.ringsMaterial.push(material);
+                    this.experiments.push(experiment);
+                    this.scene.add(experiment);
+                }
+
+                // particles
+                const tubeParticleDelta = Math.sqrt(Math.pow(this.ringTube * 2 - this.particleSize, 2) / 2);
+                this.particlesGeometry = new THREE.Geometry();
+                this.particles = [];
+
+                for (let i = 0; i < this.particleCount; i++) {
+                    const vertex = new THREE.Vector3();
+                    const polar = new VectorP(
+                        Math.random() * 2 * Math.PI - Math.PI,
+                        this.ringRadius + Math.random() * tubeParticleDelta - (tubeParticleDelta >> 1)
+                    );
+                    vertex.z = Math.random() * tubeParticleDelta - (tubeParticleDelta >> 1);
+                    const velocity = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2 + 4);
+                    this.particles.push(new Particle(polar, velocity, vertex));
+                    this.particlesGeometry.vertices.push(vertex);
+                }
+                this.particlesMaterial = new THREE.PointsMaterial({
+                    color: 0xFFFFFF,
+                    size: this.particleSize,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+                this.particlesCloud = new THREE.Points(this.particlesGeometry, this.particlesMaterial);
+                this.scene.add(this.particlesCloud);
+
+                // Data for the collisions
+                this.quarksMaterial = new THREE.PointsMaterial({
+                    color: 0xcc99ff,
+                    size: this.particleSize * 2,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+                this.leptonsMaterial = new THREE.PointsMaterial({
+                    color: 0x55cc22,
+                    size: this.particleSize * 2,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+                this.gaugeBosonsMaterial = new THREE.PointsMaterial({
+                    color: 0xff6c6c,
+                    size: this.particleSize * 2,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+                this.scalarBossonsMaterial = new THREE.PointsMaterial({
+                    color: 0xeebb34,
+                    size: this.particleSize * 2,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+                this.unknownParticleMaterial = new THREE.PointsMaterial({
+                    color: 0x397fc5,
+                    size: this.particleSize * 2,
+                    map: this.particleTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true
+                });
+
+                this.materials = {};
+                this._createParticleEntry("QUARK_UP", this.quarksMaterial, this.materials);
+                this._createParticleEntry("QUARK_DOWN", this.quarksMaterial, this.materials);
+                this._createParticleEntry("QUARK_CHARM", this.quarksMaterial, this.materials);
+                this._createParticleEntry("QUARK_STRANGE", this.quarksMaterial, this.materials);
+                this._createParticleEntry("QUARK_TOP", this.quarksMaterial, this.materials);
+                this._createParticleEntry("QUARK_BOTTOM", this.quarksMaterial, this.materials);
+                this._createParticleEntry("ELECTRON", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("ELECTRON_NEUTRINO", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("MUON", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("MUON_NEUTRINO", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("TAU", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("TAU_NEUTRINO", this.leptonsMaterial, this.materials);
+                this._createParticleEntry("PHOTON", this.gaugeBosonsMaterial, this.materials);
+                this._createParticleEntry("W_BOSON", this.gaugeBosonsMaterial, this.materials);
+                this._createParticleEntry("Z_BOSON", this.gaugeBosonsMaterial, this.materials);
+                this._createParticleEntry("GLUON", this.gaugeBosonsMaterial, this.materials);
+                this._createParticleEntry("HIGGS_BOSON", this.scalarBossonsMaterial, this.materials);
+                this._createParticleEntry("CHAMELEON", this.unknownParticleMaterial, this.materials);
+
+                this.snapshotsGeometry = [];
+                this.snapshots = [];
+                this.snapshotsCloud = [];
+
+                // lights
+                this.ambientLight = new THREE.AmbientLight(0x999999);
+                this.ambientLight.position.x = 0;
+                this.ambientLight.position.y = 1;
+                this.ambientLight.position.z = 1;
+                this.scene.add(this.ambientLight);
+
+                this.light = new THREE.PointLight(0xFFFFFF);
+                this.light.position.x = 0;
+                this.light.position.y = -750;
+                this.light.position.z = 1000;
+                this.scene.add(this.light);
+
+                // skybox
+                this.skyboxGeometry = new THREE.SphereGeometry(3000, 60, 40);
+                this.skyboxUniforms = {
+                    texture: { type: 't', value: this.textureLoader.load("src/images/milky_way.jpg") }
+                };
+                this.skyboxMaterial = new THREE.ShaderMaterial({
+                    uniforms: this.skyboxUniforms,
+                    vertexShader: this.$["sky-vertex"].textContent,
+                    fragmentShader: this.$["sky-density"].textContent
+                });
+                this.skybox = new THREE.Mesh(this.skyboxGeometry, this.skyboxMaterial);
+                this.skybox.scale.set(-1, 1, 1);
+                this.skybox.rotation.order = 'XZY';
+                this.skybox.rotation.x = Math.PI / 2;
+                this.skybox.rotation.y = -Math.PI / 2;
+                this.skybox.rotation.z = 0;
+                this.skybox.renderDepth = 1000.0;
+                this.scene.add(this.skybox);
+
+                // renderer
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setPixelRatio(window.devicePixelRatio);
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                document.body.appendChild(this.renderer.domElement);
+
+                this.stats = new Stats();
+                this.stats.showPanel(1);
+                document.body.appendChild(this.stats.dom);
+
+                window.addEventListener("resize", this._onResize.bind(this), false);
+
+                this._animate();
+            }
+
+            _createParticleEntry(name, material, target) {
+                const img = document.createElement("img");
+                img.setAttribute("src", "src/images/" + name + ".svg");
+                img.setAttribute("height", "30");
+                target[name] = { material: material, dom: img };
+            }
+
+            _animate() {
+                requestAnimationFrame(this._animate.bind(this));
+                this._render();
+            }
+
+            _render() {
+                const delta = this.clock.getDelta();
+                if (this.powered) {
+                    this.particles.forEach(particle => particle.tick(delta));
+                    this.snapshots.forEach(snapshot => snapshot.tick(delta));
+                    this.particlesGeometry.verticesNeedUpdate = true;
+                    this.snapshotsGeometry.forEach(geometry => geometry.verticesNeedUpdate = true);
+                }
+                this.stats.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            _onResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            _toggle() {
+                this.$.toggle.generateRequest();
+            }
+
+            _wireframe() {
+                this.torusMaterial.wireframe = !this.torusMaterial.wireframe;
+                this.torusMaterial.transparent = this.torusMaterial.wireframe;
+                this.torusMaterial.opacity = this.torusMaterial.wireframe ? 0.25 : 1;
+                this.ringsMaterial.forEach(material => {
+                    material.wireframe = !material.wireframe;
+                    material.transparent = material.wireframe;
+                    material.opacity = material.wireframe ? 0.25 : 1;
+                });
+                this._render();
+            }
+
+            _onStatusChange(e) {
+                let running;
+                if (e.type === "response") {
+                    running = e.detail.response === 'ON';
+                } else {
+                    running = e.detail === 'ON';
+                }
+                if (running !== this.powered) {
+                    this.powered = running;
+                }
+            }
+
+            _onSnapshot(e) {
+                const snapshotData = e.detail;
+
+                while (this.$.snapshots.firstChild) {
+                    this.$.snapshots.removeChild(this.$.snapshots.firstChild);
+                }
+
+                this.snapshotsCloud.forEach(cloud => this.scene.remove(cloud));
+
+                // snapshot
+                this.snapshotsGeometry = [];
+                this.snapshots = [];
+                this.snapshotsCloud = [];
+
+                const square = Math.sqrt(Math.pow(this.ringTube * 2 - this.particleSize * 2, 2) / 2);
+                const groups = this._groupBy(snapshotData.particles, "experiment");
+                for (const experiment in groups) {
+                    const container = document.createElement("span");
+                    container.className = "experiment " + experiment;
+                    this.$.snapshots.appendChild(container);
+                    const particles = groups[experiment];
+                    particles.sort((a,b) => a.type.localeCompare(b.type));
+                    particles.forEach(particle => {
+                        const geometry = new THREE.Geometry();
+                        const material = this.materials[particle.type].material;
+                        const cloud = new THREE.Points(geometry, material);
+                        const vertex = new THREE.Vector3();
+                        const polar = new VectorP(
+                            this.experimentData[experiment].theta,
+                            this.ringRadius + Math.random() * square - (square >> 1)
+                        );
+                        vertex.z = Math.random() * square - (square >> 1);
+                        const velocity = new THREE.Vector3();
+                        velocity.x = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2 + 4);
+                        velocity.y = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2 + 4);
+                        velocity.z = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2 + 4);
+                        geometry.vertices.push(vertex);
+
+                        const snapshot = new SnapshotParticle(polar, velocity, vertex, this.materials[particle.type].dom.cloneNode(true));
+                        this.snapshots.push(snapshot);
+                        this.snapshotsGeometry.push(geometry);
+                        this.snapshotsCloud.push(cloud);
+                        this.scene.add(cloud);
+                        container.appendChild(snapshot.dom);
+                    });
+                }
+            }
+
+            _groupBy(xs, key) {
+                return xs.reduce(function (rv, x) {
+                    (rv[x[key]] = rv[x[key]] || []).push(x);
+                    return rv;
+                }, {});
+            }
+        }
+
+        window.customElements.define(AcceleratorApp.is, AcceleratorApp);
+    </script>
+</dom-module>

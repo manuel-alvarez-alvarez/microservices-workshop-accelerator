@@ -1,0 +1,6 @@
+{
+  "name": "detector",
+  "short_name": "detector",
+  "start_url": "/",
+  "display": "standalone"
+}

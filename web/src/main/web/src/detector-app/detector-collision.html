@@ -1,0 +1,127 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="libraries.html">
+
+<dom-module id="detector-collision">
+
+    <link rel="import" type="css" href="../../bower_components/animate.css/animate.css">
+
+    <template>
+
+        <style>
+
+            :host {
+                display: block;
+            }
+
+            #container {
+                background: #fff;
+                box-shadow: 2px 2px 4px 0 #ccc;
+                margin: 10px;
+            }
+
+            .header {
+                padding: 1em;
+            }
+
+            .header > .experiment {
+                font-weight: bold;
+                text-align: left;
+            }
+
+            .header > .when {
+                font-style: italic;
+            }
+
+            .header.EINSTEIN {
+                background-color: #d77575;
+            }
+
+            .header.NEWTON {
+                background-color: #dcbc4c;
+            }
+
+            .header.HAWKING {
+                background-color: #a3ca3b;
+            }
+
+            .header.SCHRODINGER {
+                background-color: #3daee3;
+            }
+
+            .particles {
+                clear: both;
+                padding: 1em;
+            }
+
+            .when {
+                float: right;
+            }
+
+            .footer {
+                padding: 0 1em 1em 1em;
+                font-style: italic;
+            }
+
+            .footer > .name {
+                font-weight: bold;
+            }
+
+        </style>
+
+        <div id="container" class="animated fadeIn">
+            <div class$="{{_headerClassName(collision.experiment)}}">
+                <div class="when">[[_printDate(collision.when)]]</div>
+                <div class="experiment">[[collision.experiment]]</div>
+            </div>
+            <div class="particles">
+                <template is="dom-repeat" as="particle" items="{{_sortedParticles(collision.particles)}}">
+                    <img src$="{{_particleImage(particle.type)}}" height="30"/>
+                </template>
+            </div>
+            <div class="footer">
+                Detected at <span class="name">[[collision.name]]</span>
+            </div>
+        </div>
+
+    </template>
+
+    <script>
+
+        /**
+         * @customElement
+         * @polymer
+         */
+        class DetectorCollision extends Polymer.Element {
+            static get is() {
+                return 'detector-collision';
+            }
+
+            static get properties() {
+                return {
+                    collision: {
+                        type: Object
+                    }
+                };
+            }
+
+            _headerClassName(experiment) {
+                return "header " + experiment;
+            }
+
+            _particleImage(type) {
+                return "src/images/" + type + ".svg";
+            }
+
+            _printDate(when) {
+                return moment(when).format("HH:mm:ss")
+            }
+
+            _sortedParticles(particles) {
+                particles.sort((a,b) => a.type.localeCompare(b.type));
+                return particles;
+            }
+        }
+
+        window.customElements.define(DetectorCollision.is, DetectorCollision);
+    </script>
+</dom-module>
