@@ -16,31 +16,30 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="QUARK_TOP.svg">
+   sodipodi:docname="particle.svg">
   <defs
      id="defs4">
     <linearGradient
        inkscape:collect="always"
-       id="linearGradient4148">
+       id="linearGradient4226">
       <stop
-         style="stop-color:#cc99ff;stop-opacity:1;"
+         style="stop-color:#397fc5;stop-opacity:1;"
          offset="0"
-         id="stop4150" />
+         id="stop4228" />
       <stop
-         style="stop-color:#cc99ff;stop-opacity:0;"
+         style="stop-color:#397fc5;stop-opacity:0;"
          offset="1"
-         id="stop4152" />
+         id="stop4230" />
     </linearGradient>
     <linearGradient
        inkscape:collect="always"
-       xlink:href="#linearGradient4148"
-       id="linearGradient4154"
-       x1="244.14285"
-       y1="331.64792"
+       xlink:href="#linearGradient4226"
+       id="linearGradient4232"
+       x1="244.85715"
+       y1="332.36218"
        x2="155.14287"
-       y2="244.50505"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0,-2.4146189)" />
+       y2="243.07648"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -50,15 +49,15 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="-20.487883"
-     inkscape:cy="-34.47447"
+     inkscape:cx="-120.30931"
+     inkscape:cy="-32.059856"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1920"
-     inkscape:window-height="1137"
-     inkscape:window-x="-4"
-     inkscape:window-y="-4"
+     inkscape:window-width="2048"
+     inkscape:window-height="1089"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
      fit-margin-top="1"
      fit-margin-left="1"
@@ -72,7 +71,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -80,23 +79,27 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-151.02813,-237.40427)">
+     transform="translate(-151.02813,-239.81888)">
     <circle
-       style="fill:url(#linearGradient4154);fill-opacity:1;stroke:#000000;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:url(#linearGradient4232);fill-opacity:1;stroke:#000000;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path4138"
        cx="199.28572"
-       cy="285.66187"
+       cy="288.07648"
        r="43.214287" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:88.09393311px;line-height:125%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="181.49918"
-       y="316.11621"
-       id="text4196"
+       style="font-style:normal;font-weight:normal;font-size:50px;line-height:125%;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="198.68758"
+       y="306.61896"
+       id="text3342"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
-         id="tspan4198"
-         x="181.49918"
-         y="316.11621">t</tspan></text>
+         x="198.68758"
+         y="306.61896"
+         id="tspan3344"><tspan
+           x="198.68758"
+           y="306.61896"
+           style="font-size:50px"
+           id="tspan3346">?</tspan></tspan></text>
   </g>
 </svg>

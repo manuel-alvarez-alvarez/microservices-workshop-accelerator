@@ -24,7 +24,7 @@ configure(allprojects) {
     apply plugin: 'io.spring.dependency-management'
 
     group = 'es.malvarez.microservices.workshop'
-    version = '1.0.0'
+    version = '1.0.1'
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 
@@ -158,7 +158,7 @@ configure(project(":accelerator")) {
     }
     buildDocker.group = 'build'
     buildDocker.dependsOn loginDocker
-    // build.finalizedBy buildDocker
+    build.finalizedBy buildDocker
 }
 
 configure(project(":web")) {
@@ -191,14 +191,10 @@ configure(project(":web")) {
     }
 
     springBoot {
-        mainClass = "es.malvarez.microservices.web.DetectorApplication"
+        mainClass = "es.malvarez.microservices.web.WorkshopApplication"
     }
 
     dependencies {
-        compile('org.springframework.boot:spring-boot-starter-websocket')
-        compile('org.springframework.boot:spring-boot-starter-data-jpa')
-        compile('com.h2database:h2')
-        compile('org.liquibase:liquibase-core')
         compile project(':api')
     }
 
@@ -285,7 +281,6 @@ configure(project(":cqrs")) {
     task sourceJar(type: Jar) {
         from sourceSets.main.allJava
     }
-
 }
 
 

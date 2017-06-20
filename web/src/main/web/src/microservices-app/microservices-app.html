@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../collisions-element/collisions-element.html">
+<link rel="import" href="../statistics-element/statistics-element.html">
+
+<dom-module id="microservices-app">
+
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            *,
+            *:after,
+            *:before {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
+            }
+
+        </style>
+
+        <template is="dom-if" if="{{collisions}}">
+            <collisions-element api="{{api}}"></collisions-element>
+        </template>
+
+        <template is="dom-if" if="{{statistics}}">
+            <statistics-element api="{{api}}"></statistics-element>
+        </template>
+
+    </template>
+
+    <script>
+
+        /**
+         * @customElement
+         * @polymer
+         */
+        class MicroservicesApp extends Polymer.Element {
+            static get is() {
+                return 'microservices-app';
+            }
+
+            static get properties() {
+                return {
+                    api: {
+                        type: String
+                    },
+                    mode: {
+                        type: String
+                    },
+                    collisions: {
+                        type: Boolean,
+                        computed: '_isCollisions(mode)'
+                    },
+                    statistics: {
+                        type: Boolean,
+                        computed: '_isStatistics(mode)'
+                    }
+                };
+            }
+
+            _isCollisions() {
+                return this.mode === "collisions";
+            }
+
+            _isStatistics() {
+                return this.mode === "statistics";
+            }
+        }
+
+        window.customElements.define(MicroservicesApp.is, MicroservicesApp);
+    </script>
+</dom-module>

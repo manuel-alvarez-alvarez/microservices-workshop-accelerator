@@ -456,63 +456,6 @@ void main() {
                 this.particlesCloud = new THREE.Points(this.particlesGeometry, this.particlesMaterial);
                 this.scene.add(this.particlesCloud);
 
-                // Data for the collisions
-                this.quarksMaterial = new THREE.PointsMaterial({
-                    color: 0xcc99ff,
-                    size: this.particleSize * 2,
-                    map: this.particleTexture,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true
-                });
-                this.leptonsMaterial = new THREE.PointsMaterial({
-                    color: 0x55cc22,
-                    size: this.particleSize * 2,
-                    map: this.particleTexture,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true
-                });
-                this.gaugeBosonsMaterial = new THREE.PointsMaterial({
-                    color: 0xff6c6c,
-                    size: this.particleSize * 2,
-                    map: this.particleTexture,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true
-                });
-                this.scalarBossonsMaterial = new THREE.PointsMaterial({
-                    color: 0xeebb34,
-                    size: this.particleSize * 2,
-                    map: this.particleTexture,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true
-                });
-                this.unknownParticleMaterial = new THREE.PointsMaterial({
-                    color: 0x397fc5,
-                    size: this.particleSize * 2,
-                    map: this.particleTexture,
-                    blending: THREE.AdditiveBlending,
-                    transparent: true
-                });
-
-                this.materials = {};
-                this._createParticleEntry("QUARK_UP", this.quarksMaterial, this.materials);
-                this._createParticleEntry("QUARK_DOWN", this.quarksMaterial, this.materials);
-                this._createParticleEntry("QUARK_CHARM", this.quarksMaterial, this.materials);
-                this._createParticleEntry("QUARK_STRANGE", this.quarksMaterial, this.materials);
-                this._createParticleEntry("QUARK_TOP", this.quarksMaterial, this.materials);
-                this._createParticleEntry("QUARK_BOTTOM", this.quarksMaterial, this.materials);
-                this._createParticleEntry("ELECTRON", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("ELECTRON_NEUTRINO", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("MUON", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("MUON_NEUTRINO", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("TAU", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("TAU_NEUTRINO", this.leptonsMaterial, this.materials);
-                this._createParticleEntry("PHOTON", this.gaugeBosonsMaterial, this.materials);
-                this._createParticleEntry("W_BOSON", this.gaugeBosonsMaterial, this.materials);
-                this._createParticleEntry("Z_BOSON", this.gaugeBosonsMaterial, this.materials);
-                this._createParticleEntry("GLUON", this.gaugeBosonsMaterial, this.materials);
-                this._createParticleEntry("HIGGS_BOSON", this.scalarBossonsMaterial, this.materials);
-                this._createParticleEntry("CHAMELEON", this.unknownParticleMaterial, this.materials);
-
                 this.snapshotsGeometry = [];
                 this.snapshots = [];
                 this.snapshotsCloud = [];
@@ -564,11 +507,11 @@ void main() {
                 this._animate();
             }
 
-            _createParticleEntry(name, material, target) {
+            _createParticle() {
                 const img = document.createElement("img");
-                img.setAttribute("src", "src/images/" + name + ".svg");
+                img.setAttribute("src", "src/images/particle.svg");
                 img.setAttribute("height", "30");
-                target[name] = { material: material, dom: img };
+               return img;
             }
 
             _animate() {
@@ -643,11 +586,9 @@ void main() {
                     container.className = "experiment " + experiment;
                     this.$.snapshots.appendChild(container);
                     const particles = groups[experiment];
-                    particles.sort((a,b) => a.type.localeCompare(b.type));
                     particles.forEach(particle => {
                         const geometry = new THREE.Geometry();
-                        const material = this.materials[particle.type].material;
-                        const cloud = new THREE.Points(geometry, material);
+                        const cloud = new THREE.Points(geometry, this.particlesMaterial);
                         const vertex = new THREE.Vector3();
                         const polar = new VectorP(
                             this.experimentData[experiment].theta,
@@ -660,7 +601,7 @@ void main() {
                         velocity.z = (Math.random() < 0.5 ? -1 : 1) * (Math.random() * 2 + 4);
                         geometry.vertices.push(vertex);
 
-                        const snapshot = new SnapshotParticle(polar, velocity, vertex, this.materials[particle.type].dom.cloneNode(true));
+                        const snapshot = new SnapshotParticle(polar, velocity, vertex, this._createParticle());
                         this.snapshots.push(snapshot);
                         this.snapshotsGeometry.push(geometry);
                         this.snapshotsCloud.push(cloud);

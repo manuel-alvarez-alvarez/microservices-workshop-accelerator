@@ -7,10 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Base class for the detector apps
  */
 @SpringBootApplication
-public class DetectorApplication {
+public class WorkshopApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DetectorApplication.class, args);
+        SpringApplication.run(WorkshopApplication.class, args);
     }
 
 }

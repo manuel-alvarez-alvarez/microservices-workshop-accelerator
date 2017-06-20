@@ -1,6 +1,5 @@
 package es.malvarez.microservices.web.controller;
 
-import es.malvarez.microservices.web.config.DetectorSettings;
 import es.malvarez.microservices.web.util.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +21,10 @@ public class HomeController {
 
     @Autowired
     protected HomeController(
-            final DetectorSettings detectorSettings,
+            @Value("${api.href}") final String apiHref,
+            @Value("${api.mode:collisions}") final String apiMode,
             @Value("classpath:/static/index.html") final Resource index) {
-        this.home = IOUtils.read(index).replace("{{apiHref}}", detectorSettings.getApiHref());
+        this.home = IOUtils.read(index).replace("{{api}}", apiHref).replace("{{mode}}", apiMode);
     }
 
     @GetMapping(produces = MediaType.TEXT_HTML_VALUE)
@@ -32,4 +32,6 @@ public class HomeController {
     public String home() {
         return this.home;
     }
+
+
 }

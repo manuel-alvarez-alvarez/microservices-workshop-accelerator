@@ -1,9 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="libraries.html">
 
-<dom-module id="detector-collision">
-
-    <link rel="import" type="css" href="../../bower_components/animate.css/animate.css">
+<dom-module id="collisions-entry">
 
     <template>
 
@@ -28,10 +26,6 @@
                 text-align: left;
             }
 
-            .header > .when {
-                font-style: italic;
-            }
-
             .header.EINSTEIN {
                 background-color: #d77575;
             }
@@ -53,33 +47,16 @@
                 padding: 1em;
             }
 
-            .when {
-                float: right;
-            }
-
-            .footer {
-                padding: 0 1em 1em 1em;
-                font-style: italic;
-            }
-
-            .footer > .name {
-                font-weight: bold;
-            }
-
         </style>
 
-        <div id="container" class="animated fadeIn">
+        <div id="container">
             <div class$="{{_headerClassName(collision.experiment)}}">
-                <div class="when">[[_printDate(collision.when)]]</div>
                 <div class="experiment">[[collision.experiment]]</div>
             </div>
             <div class="particles">
                 <template is="dom-repeat" as="particle" items="{{_sortedParticles(collision.particles)}}">
                     <img src$="{{_particleImage(particle.type)}}" height="30"/>
                 </template>
-            </div>
-            <div class="footer">
-                Detected at <span class="name">[[collision.name]]</span>
             </div>
         </div>
 
@@ -91,9 +68,9 @@
          * @customElement
          * @polymer
          */
-        class DetectorCollision extends Polymer.Element {
+        class CollisionsEntry extends Polymer.Element {
             static get is() {
-                return 'detector-collision';
+                return 'collisions-entry';
             }
 
             static get properties() {
@@ -109,19 +86,15 @@
             }
 
             _particleImage(type) {
-                return "src/images/" + type + ".svg";
-            }
-
-            _printDate(when) {
-                return moment(when).format("HH:mm:ss")
+                return "src/images/" + (type == null ? "particle" : type) + ".svg";
             }
 
             _sortedParticles(particles) {
-                particles.sort((a,b) => a.type.localeCompare(b.type));
+                particles.sort((a,b) => a.type == null ? -1 : (b.type == null ? 1 : a.type.localeCompare(b.type)));
                 return particles;
             }
         }
 
-        window.customElements.define(DetectorCollision.is, DetectorCollision);
+        window.customElements.define(CollisionsEntry.is, CollisionsEntry);
     </script>
 </dom-module>

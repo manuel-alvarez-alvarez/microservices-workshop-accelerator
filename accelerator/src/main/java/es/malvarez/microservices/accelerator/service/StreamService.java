@@ -33,25 +33,10 @@ public class StreamService {
 
     public void sendMessage(final Snapshot snapshot) {
         try {
-            Snapshot untypedSnapshot = new Snapshot.Builder()
-                    .setId(snapshot.getId())
-                    .setWhen(snapshot.getWhen())
-                    .addParticles(snapshot.getParticles().stream().map(this::removeType).collect(Collectors.toList()))
-                    .build();
-            stream.output().send(MessageBuilder.withPayload(untypedSnapshot).build());
+            stream.output().send(MessageBuilder.withPayload(snapshot).build());
         } catch (final Throwable e) {
             errorChannel.send(new ErrorMessage(e));
         }
-    }
-
-    private DetectedParticle removeType(final DetectedParticle particle) {
-        return new DetectedParticle.Builder()
-                .setId(particle.getId())
-                .setMassInMevC2(particle.getMassInMevC2())
-                .setCharge(particle.getCharge())
-                .setSpin(particle.getSpin())
-                .setExperiment(particle.getExperiment())
-                .build();
     }
 
 }

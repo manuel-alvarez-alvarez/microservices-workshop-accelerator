@@ -11,15 +11,13 @@ public class DetectedParticle {
 
     private final Experiment experiment;
     private final UUID id;
-    private final ParticleType type;
     private final Spin spin;
     private final Charge charge;
     private final BigDecimal massInMevC2;
 
-    private DetectedParticle(final UUID id, final Experiment experiment, final ParticleType type, final Spin spin, final Charge charge, final BigDecimal massInMevC2) {
+    private DetectedParticle(final UUID id, final Experiment experiment, final Spin spin, final Charge charge, final BigDecimal massInMevC2) {
         this.id = id;
         this.experiment = experiment;
-        this.type = type;
         this.spin = spin;
         this.charge = charge;
         this.massInMevC2 = massInMevC2;
@@ -27,10 +25,6 @@ public class DetectedParticle {
 
     public UUID getId() {
         return id;
-    }
-
-    public ParticleType getType() {
-        return type;
     }
 
     public Spin getSpin() {
@@ -66,7 +60,6 @@ public class DetectedParticle {
 
     public static class Builder {
         private UUID id;
-        private ParticleType type;
         private Spin spin;
         private Charge charge;
         private BigDecimal massInMevC2;
@@ -79,11 +72,6 @@ public class DetectedParticle {
 
         public Builder setRandomId() {
             return setId(UUID.randomUUID());
-        }
-
-        public Builder setType(final ParticleType type) {
-            this.type = type;
-            return this;
         }
 
         public Builder setSpin(final Spin spin) {
@@ -108,7 +96,6 @@ public class DetectedParticle {
 
         public Builder from(final DetectedParticle particle) {
             this.id = particle.getId();
-            this.type = particle.getType();
             this.spin = particle.getSpin();
             this.charge = particle.getCharge();
             this.massInMevC2 = particle.getMassInMevC2();
@@ -117,7 +104,7 @@ public class DetectedParticle {
         }
 
         public DetectedParticle build() {
-            return new DetectedParticle(id, experiment, type, spin, charge, massInMevC2);
+            return new DetectedParticle(id, experiment, spin, charge, massInMevC2);
         }
     }
 }

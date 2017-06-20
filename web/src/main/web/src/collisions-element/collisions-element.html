@@ -1,9 +1,8 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="ws-element.html">
-<link rel="import" href="detector-collision.html">
+<link rel="import" href="collisions-entry.html">
 
-<dom-module id="detector-app">
+<dom-module id="collisions-element">
 
     <link rel="import" type="css" href="../../bower_components/pure/grids.css">
     <link rel="import" type="css" href="../../bower_components/pure/grids-responsive.css">
@@ -40,12 +39,6 @@
 
         </style>
 
-        <ws-element
-                id="collisionTopic"
-                endpoint="/ws"
-                topic="/topic/collision"
-                on-message="_onNewCollision"></ws-element>
-
         <iron-ajax
                 id="collisionAjax"
                 method="GET"
@@ -54,7 +47,7 @@
 
         <div class="wrapper">
             <h1>
-                Last [[max]] collision(s)
+                Last collision [[_printDate(when)]]
             </h1>
 
             <div id="container" class="pure-g">
@@ -70,9 +63,9 @@
          * @customElement
          * @polymer
          */
-        class DetectorApp extends Polymer.Element {
+        class CollisionsElement extends Polymer.Element {
             static get is() {
-                return 'detector-app';
+                return 'collisions-element';
             }
 
             static get properties() {
@@ -80,53 +73,57 @@
                     api: {
                         type: String
                     },
-                    max: {
+                    timeout: {
                         type: Number,
-                        value: 100
+                        value: 1000
+                    },
+                    when: {
+                        type: Number
                     }
                 };
             }
 
             connectedCallback() {
                 super.connectedCallback();
-                const ajax = this.$.collisionAjax;
-                ajax.url = this.api + "/collision?page=0&sort=when,desc&size=" + this.max;
-                ajax.generateRequest();
+                this._execute();
             }
 
-            _onNewCollision(e) {
-                const id = e.detail;
+            disconnectedCallback() {
+                clearTimeout(this.timeoutHandle);
+            }
+
+            _execute() {
                 const ajax = this.$.collisionAjax;
-                ajax.url = this.api + "/collision/" + id;
+                ajax.url = this.api + "/last";
                 ajax.generateRequest();
+                this.timeoutHandle = setTimeout(this._execute.bind(this), this.timeout);
             }
 
             _onCollisions(e) {
-                if (e.detail.response.hasOwnProperty("content")) {
-                    const page = e.detail.response;
-                    page.content.reverse();
-                    page.content.forEach(it => this._addCollision(it));
-                } else {
-                    this._addCollision(e.detail.response);
+                const collisions = e.detail.response;
+                if (collisions.length === 0) {
+                    return;
                 }
+                const container = this.$.container;
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                this.when = collisions[0].when;
+                e.detail.response.forEach(it => this._addCollision(container, it));
             }
 
-            _addCollision(collision) {
-                const element = document.createElement("detector-collision");
+            _addCollision(container, collision) {
+                const element = document.createElement("collisions-entry");
                 element.className = 'pure-u-sm-1 pure-u-md-1-2 pure-u-lg-1-3 pure-u-xl-1-4';
                 element.collision = collision;
-                const container = this.$.container;
-                if (container.children.length === 0) {
-                    container.appendChild(element);
-                } else {
-                    while (container.children.length >= this.max) {
-                        container.removeChild(container.lastChild);
-                    }
-                    container.insertBefore(element, container.firstChild);
-                }
+                container.insertBefore(element, container.firstChild);
+            }
+
+            _printDate(when) {
+                return moment(when).format("HH:mm:ss")
             }
         }
 
-        window.customElements.define(DetectorApp.is, DetectorApp);
+        window.customElements.define(CollisionsElement.is, CollisionsElement);
     </script>
 </dom-module>

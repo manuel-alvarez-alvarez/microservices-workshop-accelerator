@@ -1,0 +1,76 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="statistics-element">
+
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+
+            *,
+            *:after,
+            *:before {
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                padding: 0;
+                margin: 0;
+            }
+
+        </style>
+
+        <iron-ajax
+                id="statisticsAjax"
+                method="GET"
+                handle-as="json"
+                on-response="_onStatistics"></iron-ajax>
+
+       <div>HELLO</div>
+
+    </template>
+
+    <script>
+
+        /**
+         * @customElement
+         * @polymer
+         */
+        class StatisticsElement extends Polymer.Element {
+            static get is() {
+                return 'statistics-element';
+            }
+
+            static get properties() {
+                return {
+                    api: {
+                        type: String
+                    }
+                };
+            }
+
+            connectedCallback() {
+                super.connectedCallback();
+                const ajax = this.$.collisionAjax;
+                ajax.url = this.api + "/collision?page=0&sort=when,desc&size=" + this.max;
+                ajax.generateRequest();
+            }
+
+            _onNewCollision(e) {
+                const id = e.detail;
+                const ajax = this.$.statisticsAjax;
+                ajax.url = this.api + "/statistics";
+                ajax.generateRequest();
+            }
+
+            _onStatistics(e) {
+
+            }
+
+
+        }
+
+        window.customElements.define(StatisticsElement.is, StatisticsElement);
+    </script>
+</dom-module>

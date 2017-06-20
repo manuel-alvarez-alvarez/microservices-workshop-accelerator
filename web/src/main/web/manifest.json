@@ -1,6 +1,6 @@
 {
-  "name": "detector",
-  "short_name": "detector",
+  "name": "microservices-workshop",
+  "short_name": "microservices-whorkshop",
   "start_url": "/",
   "display": "standalone"
 }

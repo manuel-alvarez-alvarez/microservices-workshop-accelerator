@@ -1,9 +1,6 @@
 package es.malvarez.microservices.api;
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * So every second we get a snapshot of the particles in our experiments ...
@@ -55,7 +52,7 @@ public class Snapshot {
             return setWhen(new Date());
         }
 
-        public Builder addParticles(final List<DetectedParticle> particles) {
+        public Builder addParticles(final Collection<DetectedParticle> particles) {
             this.particles.addAll(particles);
             return this;
         }
