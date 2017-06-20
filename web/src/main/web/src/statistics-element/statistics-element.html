@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="libraries.html">
 
 <dom-module id="statistics-element">
 
@@ -27,7 +28,9 @@
                 handle-as="json"
                 on-response="_onStatistics"></iron-ajax>
 
-       <div>HELLO</div>
+        <div class="chart-container" style="position: relative; height:40vh; width:40vw">
+            <canvas id="chart"></canvas>
+        </div>
 
     </template>
 
@@ -46,29 +49,61 @@
                 return {
                     api: {
                         type: String
+                    },
+                    timeout: {
+                        type: Number,
+                        value: 1000
                     }
                 };
             }
 
             connectedCallback() {
                 super.connectedCallback();
-                const ajax = this.$.collisionAjax;
-                ajax.url = this.api + "/collision?page=0&sort=when,desc&size=" + this.max;
-                ajax.generateRequest();
+                this.chart = new Chart(this.$.chart, {
+                    type: 'pie',
+                    data : {
+                        labels: [],
+                        datasets: [{
+                            backgroundColor: [],
+                            data: []
+                        }]
+                    }
+                });
+                this._execute();
             }
 
-            _onNewCollision(e) {
-                const id = e.detail;
+            disconnectedCallback() {
+                clearTimeout(this.timeoutHandle);
+            }
+
+            _execute() {
                 const ajax = this.$.statisticsAjax;
-                ajax.url = this.api + "/statistics";
+                ajax.url = this.api;
                 ajax.generateRequest();
+                this.timeoutHandle = setTimeout(this._execute.bind(this), this.timeout);
             }
 
             _onStatistics(e) {
-
+                const stats = e.detail.response;
+                if (Object.keys(stats).length >= 0) {
+                    this.chart.data.labels = this._labels(stats);
+                    this.chart.data.datasets[0].backgroundColor = this._backgroundColors(stats);
+                    this.chart.data.datasets[0].data = this._data(stats);
+                    this.chart.update();
+                }
             }
 
+            _labels(stats) {
+                return Object.keys(stats);
+            }
 
+            _data(stats) {
+                return Object.keys(stats).map( particle => stats[particle]);
+            }
+
+            _backgroundColors(stats) {
+                return Object.keys(stats).map( particle => particle === "CHAMELEON" ? "#36A2EB" : "#FF6384");
+            }
         }
 
         window.customElements.define(StatisticsElement.is, StatisticsElement);

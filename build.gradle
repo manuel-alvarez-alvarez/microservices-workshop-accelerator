@@ -5,7 +5,7 @@ buildscript {
         springBootVersion = '1.5.2.RELEASE'
         gradleDockerVersion = '1.2'
         gradleWrapperVersion = '3.5'
-        pushDockerImages = false
+        pushDockerImages = true
     }
     repositories {
         mavenCentral()
